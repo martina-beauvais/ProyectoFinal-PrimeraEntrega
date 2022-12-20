@@ -28,10 +28,10 @@ app.set('view engine', 'ejs');
 // ROUTES 
 let views = require('./routes/viewProducts.js');
 let routes = require('./routes/loadProducts.js');
-let carrito = require('./routes/carrito.js');
+let carrito = require('./routes/Cart.js');
 app.use("/", views);
-app.use("/products", routes);
-app.use('/carrito', carrito);
+app.use("/api/productos", routes);
+app.use("/api/carrito", carrito);
 
 // LISTEN
 httpServer.listen(PORT, () => console.log(`http://localhost:${PORT}`));

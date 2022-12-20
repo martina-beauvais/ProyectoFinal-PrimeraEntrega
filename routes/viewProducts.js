@@ -1,4 +1,4 @@
-const Products = require('../api/classProducts.js');
+const Products = require('../contenedores/classCart&Product.js');
 const Productos = new Products('./resources/productos.json');
 
 let {Router} = require('express');
@@ -27,7 +27,8 @@ router.get('/chat', async(req, res, next) => {
 })
 
 router.get('/carrito', async(req, res, next) => {
-    res.render('carrito');
+    let product = await Productos.getById();
+    res.render('Cart', {product});
 })
 
 module.exports = router;

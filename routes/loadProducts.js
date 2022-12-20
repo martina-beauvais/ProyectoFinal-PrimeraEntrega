@@ -1,5 +1,6 @@
-const Products = require('../api/classProducts.js');
+const Products = require('../contenedores/classCart&Product.js');
 const Productos = new Products('./resources/productos.json');
+let SoloAdministradores = require('../routes/administrador');
 
 const {Router} = require('express');
 let router = new Router();
@@ -18,7 +19,7 @@ router.get("/",async(req,res,next)=>{
 router.get("/:id", async(req,res,next)=>{
     try {
         let idFilter = req.params.id
-        let productoFilter = await contenedor.getById(idFilter);
+        let productoFilter = await Productos.getById(idFilter);
         res.send(productoFilter);
     } catch (error) {
         console.log(error);
@@ -26,20 +27,24 @@ router.get("/:id", async(req,res,next)=>{
 });
 
 //ADD PRODUCT
-router.post("/", async(req,res,next)=>{
+router.post("/", SoloAdministradores, async(req,res,next)=>{
     try {
-        let {title,price,thumbnail} = req.body
+        let {title, description, code,price,thumbnail, timestamp} = req.body
         if(!title||!price||!thumbnail){
             console.log("Faltan valores.");
         }else{
             let newProduct = {
+                timestamp,
                 title,
+                description,
+                code,
                 price,
                 thumbnail
             };
             await Productos.saveProduct(newProduct);
             res.redirect('http://localhost:8080/products')
             res.send(`ID: ${newProduct.id},
+            TIMESTAMP: ${newProduct.timestamp}
             TITLE: ${newProduct.title},
             PRICE: $ ${newProduct.price},
             THUMBNAIL: ${newProduct.thumbnail}`);
@@ -51,7 +56,7 @@ router.post("/", async(req,res,next)=>{
 });
 
 //UPDATE PRODUCT
-router.put("/:id", async(req,res,next)=>{
+router.put("/:id", SoloAdministradores, async(req,res,next)=>{
     try {
         let id = req.params.id;
         let {title,price,thumbnail} = req.body
@@ -65,7 +70,7 @@ router.put("/:id", async(req,res,next)=>{
                 thumbnail
             };
             await Productos.saveChanges(actualizar)
-            res.send(`El título del producto ${actualizar.title} se ha actualizado.`)
+            res.send(`Los datos del producto ${actualizar.title} se han actualizado.`)
         }
     } catch (error) {
         console.log(error)
@@ -74,7 +79,7 @@ router.put("/:id", async(req,res,next)=>{
 
 
 //DELETE PRODUCT
-router.delete("/:id", async(req,res,next)=>{
+router.delete("/:id", SoloAdministradores, async(req,res,next)=>{
     try {
         let id = req.params.id;
         await Productos.deleteById(id);

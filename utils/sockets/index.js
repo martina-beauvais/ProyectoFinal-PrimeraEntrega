@@ -1,6 +1,4 @@
 let {Server : SocketIO} = require('socket.io');
-const Productos = require('../../api/classProducts');
-const products = new Productos('./resources/productos.json');
 
 class Socket {
     static instancia;

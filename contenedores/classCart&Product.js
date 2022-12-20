@@ -1,13 +1,15 @@
 const fs = require('fs');
+const  {getTimestamp, newID} = require('../utils/functions')
 
-class Products{
+class Container {
     constructor(ruta){
-        this.ruta = ruta
+        this.ruta = ruta;
     }
 
     async saveProduct(product){
         const products = await this.getAllProducts();
         product.id = products.length === 0 ? 0 : product.id = products[products.length - 1].id + 1;
+        product.timestamp = getTimestamp()
         try {
             console.log(`El producto se está guardando: \n${JSON.stringify(product)}`);
             products.push(product);
@@ -67,12 +69,73 @@ class Products{
             if(item.id == object.id){
                 item.title = object.title, 
                 item.price = object.price,
-                item.thumbnail = object.thumbnail
+                item.thumbnail = object.thumbnail,
+                item.timestamp = object.timestamp
             }
         })
         await fs.promises.writeFile(this.ruta, JSON.stringify(products, null, '\t'));
         return products
     }
+    
+    async newCart(){
+        let products = [];
+        let timestamp = getTimestamp();
+        let carts = await this.getAllProducts();
+        let id = 1; 
+        if(carts.length > 0){
+            id = newID(carts);
+        }
+        this.saveCart({id, timestamp, products});
+        return {id, timestamp, products};
+    }
+
+    async saveCart(cart){
+        let carts = await this.getAllProducts();
+        carts.push(cart);
+        try {
+            await fs.promises.writeFile(this.ruta, JSON.stringify(carts, null, 2));
+        } catch (error) {
+            console.log('ERROR EN SAVE CART !');
+        }
+    }
+
+    async saveCarts(carts){
+        try {
+            await fs.promises.writeFile(this.ruta, JSON.stringify(carts, null, 2));
+        } catch (error) {
+            console.log('ERROR EN SAVE CARTS!');
+        }
+    }
+
+    async updateCart(cart,id){
+        let carts = await this.getAllProducts();
+        let index = carts.map(element => element.id == id);
+        carts.splice(index, 1);
+        console.log(cart);
+        carts.push(cart);
+        await this.saveCarts(carts);
+        return true;
+    }
+
+    async addToCart(cartID, product){
+        let cart = await this.getById(cartID);
+        cart.push(product);
+        await this.updateCart(cart);
+    }
+
+    async deleteCartProduct(cartID, productID){
+        let cart = await this.getById(cartID);
+        try {
+            if(cart === null){
+                throw new Error('Id de carrito no encontrado')
+            }
+            let newCart = cart.filter(element => element.id =! productID)
+            await this.saveCart(newCart)
+        } catch (error) {
+            console.log('ERROR EN DELETE CART PRODUCT ! ')
+            console.log(error)
+        }
+    }
 }
 
-module.exports = Products
+module.exports = Container; 
